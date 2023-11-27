@@ -1,0 +1,39 @@
+<LoginPage>:
+    FloatLayout:
+        Image:
+            source: "Images/login.png"
+            pos_hint: {"right":0.58, 'top': 0.9}
+            size_hint: None, None
+            size: 150,150
+        Label:
+            text:"Usuario:"
+            pos_hint: {"right":0.35,"top":0.6} #posição
+            size_hint: 0.1,0.05 #tamanho
+        Label:
+            text:"Senha:"
+            pos_hint: {"right":0.35,"top":0.5} #posição
+            size_hint: 0.1,0.05 #tamanho
+        Button:
+            text:"Entrar"
+            on_release: app.mudar_tela("homepage")
+            pos_hint: {"right":0.53,"top":0.4} #posição
+            size_hint: 0.1,0.05 #tamanho
+        Button:
+            text:"Cadastrar"
+            on_release: app.mudar_tela("cadastropage")
+            pos_hint: {"right":0.53,"top":0.3} #posição
+            size_hint: 0.1,0.05 #tamanho
+        TextInput:
+            id: user_input
+            pos_hint: {"right":0.65, "top":0.6}
+            size_hint: 0.3, 0.05
+            multiline: False
+            on_text_validate: root.login()
+
+        TextInput:
+            id: password_input
+            pos_hint: {"right":0.65, "top":0.5}
+            size_hint: 0.3, 0.05
+            multiline: False
+            password: True
+            on_text_validate: root.login()
