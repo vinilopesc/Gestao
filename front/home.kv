@@ -1,11 +1,21 @@
 <HomePage>:
     FloatLayout:
         Label:
-            pos_hint: {"right":0.8,"top":0.7}
-            size_hint: 1, 0.7
-            text:"HOMEPAGE"
+            pos_hint: {"right":0.55, 'top': 0.9}
+            size_hint: None,None
+            text:"Bem vindo ao Gestex"
         Button:
-            text:"Voltar"
-            on_release: app.mudar_tela("loginpage")
-            pos_hint: {"right":0.53,"top":0.4} #posição
-            size_hint: 0.1,0.05 #tamanho
+            text:"Clientes"
+            on_release: app.mudar_tela("clientespage")
+            pos_hint: {"right":0.35,"top":0.5}
+            size_hint: 0.15,0.07
+        Button:
+            text:"Fornecedores"
+            on_release: app.mudar_tela("fornecedorespage")
+            pos_hint: {"right":0.55,"top":0.5}
+            size_hint: 0.15,0.07
+        Button:
+            text:"Financeiro"
+            on_release: app.mudar_tela("financeiropage")
+            pos_hint: {"right":0.75,"top":0.5}
+            size_hint: 0.15,0.07

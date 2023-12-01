@@ -1,18 +1,11 @@
 from kivy.uix.screenmanager import Screen
-import mysql.connector
-from mysql.connector import Error
-import logging
 from kivy.properties import StringProperty
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+import firebase_admin
+from firebase_admin import credentials, auth, firestore
 import re
 
-
-db_connection = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    passwd="Abclopes1512vini!",
-    database="sistema_login"
-)
-db_cursor = db_connection.cursor()
 
 class CadastroPage(Screen):
     erro_mensagem = StringProperty('')
@@ -21,8 +14,6 @@ class CadastroPage(Screen):
     erro_email = StringProperty('')
     erro_telefone = StringProperty('')
     erro_cpf = StringProperty('')
-    erro_cep = StringProperty('')
-    erro_num_casa = StringProperty('')
     erro_senha = StringProperty('')
     largura_caixa_texto = 0.35
     altura_caixa_texto = 0.05
@@ -32,112 +23,135 @@ class CadastroPage(Screen):
     largura_label = 0.2
 
     def tratar_nome(self, nome):
-        if not isinstance(nome,str):
-            return "Digite apenas letras"
-        if nome == "":
-            return "Nome é obrigatorio"
-        if len(nome) > 20:
-            return "Limite de 20 caracteres."
-        return None
-
+        nome = ' '.join(word.capitalize() for word in nome.split())
+        if not nome:
+            return None, "Nome é obrigatório."
+        if not re.match(r'^[A-Za-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ ]+$', nome):
+            return None, "Nome inválido. Use apenas letras e espaços."
+        if len(nome) > 50:
+            return None, "Nome muito longo. Máximo de 50 caracteres."
+        return nome, ''
     def tratar_email(self, email):
         if not email:
-            return "Email é obrigatório."
+            return None, "Email é obrigatório."
         email_regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b$'
         if not re.fullmatch(email_regex, email):
-            return "Formato de email inválido."
-        return None
+            return None, "Formato de email inválido."
+        if self.verificar_email_existente(email):
+            self.mostrar_popup_erro("O e-mail informado já está em uso")
+        return email, ''
 
+    def verificar_email_existente(self, email):
+        try:
+            user = auth.get_user_by_email(email)
+            if user:
+                return True
+        except auth.UserNotFoundError:
+            return False
+        except Exception as e:
+            self.mostrar_popup_erro(f"Erro ao verificar o e-mail: {e}")
+            return False
     def tratar_usuario(self, usuario):
         if not usuario:
-            return "Nome de usuário é obrigatório."
+            return None, "Nome de usuário é obrigatório."
         min_length = 4
         max_length = 20
         if len(usuario) < min_length or len(usuario) > max_length:
-            return f"Nome de usuário deve ter entre {min_length} e {max_length} caracteres."
+            return None, f"Nome de usuário deve ter entre {min_length} e {max_length} caracteres."
         if not re.match(r'^\w+$', usuario):
-            return "Nome de usuário pode conter apenas letras, números e underscores."
-        return None
+            return usuario, "Nome de usuário pode conter apenas letras, números e underscores."
+        return usuario, ''
 
     def tratar_telefone(self, telefone):
         if not telefone:
-            return "Número de telefone é obrigatório."
+            return None, "Número de telefone é obrigatório."
         telefone_limpo = re.sub(r'[^0-9]', '', telefone)
         if len(telefone_limpo) < 10 or len(telefone_limpo) > 11:
-            return "Número de telefone (com DDD) deve ter 10 ou 11 dígitos."
-        return None
+            return None, "Número de telefone deve ter 10 ou 11 dígitos."
+        return telefone_limpo, ''
 
-    def tratar_cep(self, cep):
-        if not cep:
-            return "CEP é obrigatório."
-        cep_limpo = re.sub(r'[\s-]', '', cep)
-        if not cep_limpo.isdigit() or len(cep_limpo) != 8:
-            return "Formato de CEP inválido."
-        return None
-
-    def validar_cpf(self, cpf):
+    def tratar_cpf(self, cpf):
+        cpf = re.sub(r'[\s.-]', '', cpf)
         if not cpf.isdigit() or len(cpf) != 11:
-            return "CPF deve ter 11 dígitos."
-        if cpf in ['00000000000', '11111111111', '22222222222', '33333333333',
-                   '44444444444', '55555555555', '66666666666', '77777777777',
-                   '88888888888', '99999999999']:
-            return "CPF inválido."
+            return None, "CPF deve ter 11 dígitos."
+        if cpf in ['00000000000', '11111111111', '22222222222', '33333333333','44444444444', '55555555555', '66666666666', '77777777777','88888888888', '99999999999']:
+            return None, "CPF inválido."
         for i in range(9, 11):
             soma = sum(int(cpf[num]) * (i + 1 - num) for num in range(0, i))
             digito = (soma * 10) % 11
             if digito == 10:
                 digito = 0
             if str(digito) != cpf[i]:
-                return "CPF inválido."
-        return None
+                return None, "CPF inválido."
+        return cpf, ''
 
-    def validar_num_casa(self, num_casa):
-        if not num_casa:
-            return "Número da casa é obrigatório."
-        if not re.match(r'^\d+[A-Za-z]*$', num_casa):
-            return "Número da casa inválido."
-        return None
-
-    def validar_senha(self, senha, confirm_senha):
+    def tratar_senha(self, senha, confirm_senha):
         if not senha:
-            return "Senha é obrigatória."
-        if len(senha) < 8 or len(senha) > 20:
-            return "Senha deve ter entre 8 e 20 caracteres."
+            return None, "Senha é obrigatória."
+        if len(senha) < 6:
+            return None, "Senha deve ter mais de 6 caracteres."
         if senha != confirm_senha:
-            return "Senhas não coincidem."
-        return None
+            return None, "Senhas não coincidem."
+        return senha, ''
 
-    def registrar_usuario(self, usuario, nome, email, telefone, cpf, cep, num_casa, senha, confirm_senha):
-        self.erro_usuario = self.erro_nome = self.erro_email = self.erro_telefone = ''
-        self.erro_cpf = self.erro_cep = self.erro_num_casa = self.erro_senha = ''
-        erro_usuario = self.tratar_usuario(usuario)
-        erro_nome = self.tratar_nome(nome)
-        erro_email = self.tratar_email(email)
-        erro_telefone = self.tratar_telefone(telefone)
-        erro_cpf = self.validar_cpf(cpf)
-        erro_cep = self.tratar_cep(cep)
-        erro_num_casa = self.validar_num_casa(num_casa)
-        erro_senha = self.validar_senha(senha, confirm_senha)
-        if any([erro_usuario, erro_nome, erro_email, erro_telefone, erro_cpf, erro_cep, erro_num_casa, erro_senha]):
-            self.erro_usuario = erro_usuario or ''
-            self.erro_nome = erro_nome or ''
-            self.erro_email = erro_email or ''
-            self.erro_telefone = erro_telefone or ''
-            self.erro_cpf = erro_cpf or ''
-            self.erro_cep = erro_cep or ''
-            self.erro_num_casa = erro_num_casa or ''
-            self.erro_senha = erro_senha or ''
+    def mostrar_popup_erro(self, mensagem):
+        popup = Popup(title='Erro',content=Label(text=mensagem),size_hint=(None, None), size=(400, 400))
+        popup.open()
+
+    def validar_dados(self, usuario, nome, email, telefone, cpf, senha, confirm_senha):
+        self.usuario_tratado, self.erro_usuario = self.tratar_usuario(usuario)
+        if self.erro_usuario:
+            self.mostrar_popup_erro(self.erro_usuario)
+            return False
+
+        self.nome_tratado, self.erro_nome = self.tratar_nome(nome)
+        if self.erro_nome:
+            self.mostrar_popup_erro(self.erro_nome)
+            return False
+
+        self.email_tratado, self.erro_email = self.tratar_email(email)
+        if self.erro_email:
+            self.mostrar_popup_erro(self.erro_email)
+            return False
+
+        self.telefone_tratado, self.erro_telefone = self.tratar_telefone(telefone)
+        if self.erro_telefone:
+            self.mostrar_popup_erro(self.erro_telefone)
+            return False
+
+        self.cpf_tratado, self.erro_cpf = self.tratar_cpf(cpf)
+        if self.erro_cpf:
+            self.mostrar_popup_erro(self.erro_cpf)
+            return False
+
+        self.senha_tratada, self.erro_senha = self.tratar_senha(senha, confirm_senha)
+        if self.erro_senha:
+            self.mostrar_popup_erro(self.erro_senha)
+            return False
+
+        return True
+
+    def cadastrar_usuario(self, usuario, nome, email, telefone, cpf, senha, confirm_senha):
+        if not self.validar_dados(usuario, nome, email, telefone, cpf, senha, confirm_senha):
             return
         try:
-            connection = mysql.connector.connect(host='localhost', database='sistema_login', user='root',
-                                                 password='Abclopes1512vini!')
-            cursor = connection.cursor()
-            query = "INSERT INTO clientes (usuario, nome, email, telefone, cpf, cep, num_casa, senha) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(query, (usuario, nome, email, telefone, cpf, cep, num_casa, senha))
-            connection.commit()
-        except mysql.connector.Error as err:
-            print(f"Erro ao registrar usuário: {err}")
-        finally:
-            if connection.is_connected():
-                cursor.close()
-                connection.close()
+            user_record = auth.create_user(
+                email=self.email_tratado,
+                password=self.senha_tratada
+            )
+            user_id = user_record.uid
+
+            db = firestore.client()
+            user_data = {
+                "usuario": self.usuario_tratado,
+                "nome": self.nome_tratado,
+                "email": self.email_tratado,
+                "telefone": self.telefone_tratado,
+                "cpf": self.cpf_tratado,
+                "senha": self.senha_tratada
+            }
+            db.collection("Usuarios").document(user_id).set(user_data)
+            self.mostrar_popup_erro("Usuário cadastrado com sucesso.")
+        except Exception as e:
+            self.mostrar_popup_erro(f"Erro ao criar usuário no Firebase: {e}")
+

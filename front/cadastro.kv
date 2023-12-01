@@ -23,69 +23,16 @@
             size_hint: root.largura_label, root.altura_label
         Label:
             text: "Cpf:"
-            pos_hint: {"x":0.15, "top":0.63}
-            size_hint: root.largura_label, root.altura_label
-        Label:
-            text: "CEP:"
-            pos_hint: {"x":0.15, "top":0.58}
-            size_hint: root.largura_label, root.altura_label
-        Label:
-            text: "Numero casa:"
-            pos_hint: {"x":0.12,"top":0.53}
+            pos_hint: {"x":0.16, "top":0.63}
             size_hint: root.largura_label, root.altura_label
         Label:
             text: "Senha:"
-            pos_hint: {"x":0.15, "top":0.48}
+            pos_hint: {"x":0.15, "top":0.58}
             size_hint: root.largura_label, root.altura_label
         Label:
             text: "Repita a senha:"
-            pos_hint: {"x":0.12, "top":0.43}
+            pos_hint: {"x":0.13, "top":0.53}
             size_hint: root.largura_label, root.altura_label
-#########
-        Label:
-            text: root.erro_usuario
-            pos_hint: {"x":0.7, "top":0.83}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-        Label:
-            text: root.erro_nome
-            pos_hint: {"x":0.65, "top":0.78}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-        Label:
-            text: root.erro_email
-            pos_hint: {"x":0.65, "top":0.73}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-        Label:
-            text: root.erro_telefone
-            pos_hint: {"x":0.7, "top":0.68}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-        Label:
-            text: root.erro_cpf
-            pos_hint: {"x":0.65, "top":0.63}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-        Label:
-            text: root.erro_cep
-            pos_hint: {"x":0.625, "top":0.58}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-        Label:
-            text: root.erro_num_casa
-            pos_hint: {"x":0.68, "top":0.53}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-        Label:
-            text: root.erro_senha
-            pos_hint: {"x":0.64, "top":0.48}
-            size_hint: root.largura_label, root.altura_label
-            color: 1, 0, 0, 1
-
-
-
-        # TextInputs
         TextInput:
             id: user_input
             pos_hint: {"x":0.3, "top":0.75}
@@ -112,35 +59,24 @@
             size_hint: root.largura_caixa_texto, root.altura_caixa_texto
             multiline: False
         TextInput:
-            id: cep_input
-            pos_hint: {"x":0.3, "top":0.5}
-            size_hint: root.largura_caixa_texto, root.altura_caixa_texto
-            multiline: False
-        TextInput:
-            id: num_casa_input
-            pos_hint: {"x":0.3, "top":0.45}
-            size_hint: root.largura_caixa_texto, root.altura_caixa_texto
-            multiline: False
-        TextInput:
             id: senha_input
-            pos_hint: {"x":0.3, "top":0.4}
+            pos_hint: {"x":0.3, "top":0.5}
             size_hint: root.largura_caixa_texto, root.altura_caixa_texto
             password: True
             multiline: False
         TextInput:
             id: senha_confirm_input
-            pos_hint: {"x":0.3, "top":0.35}
+            pos_hint: {"x":0.3, "top":0.45}
             size_hint: root.largura_caixa_texto, root.altura_caixa_texto
             password: True
             multiline: False
         Button:
             text: "Cadastrar"
-            pos_hint: {"x":0.4, "y":0.2}
+            pos_hint: {"x":0.4, "y":0.3}
             size_hint: root.largura_btn, root.altura_btn
-            on_release: root.registrar_usuario(user_input.text, nome_input.text, email_input.text, telefone_input.text, cpf_input.text, cep_input.text, num_casa_input.text, senha_input.text, senha_confirm_input.text)
-        #Popup:
-            #id: error_popup
-            #title: "Erro"
-            #size_hint: root.largura_label, root.altura_label
-            #Label:
-                #text: root.erro_mensagem
+            on_release: root.cadastrar_usuario(user_input.text, nome_input.text, email_input.text, telefone_input.text, cpf_input.text, senha_input.text, senha_confirm_input.text)
+        Button:
+            text: "<="
+            size_hint: 0.05, 0.05
+            pos_hint: {"x": 0, "top": 1}
+            on_release: app.mudar_tela("loginpage")

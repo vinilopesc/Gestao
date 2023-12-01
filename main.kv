@@ -1,6 +1,8 @@
 #:include front/login.kv
 #:include front/home.kv
 #:include front/cadastro.kv
+#:include front/clientes.kv
+#:include front/financeiro.kv
 
 ScreenManager:
     id: screen_manager
@@ -13,5 +15,14 @@ ScreenManager:
     HomePage:
         name: "homepage"
         id: homepage
+    FornecedoresPage:
+        name: "fornecedorespage"
+        id : fornecedorespage
+    ClientesPage:
+        name : "clientespage"
+        id : clientespage
+    FinanceiroPage:
+        name : "financeiropage"
+        id : financeiropage
 
 

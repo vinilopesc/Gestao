@@ -6,7 +6,7 @@
             size_hint: None, None
             size: 150,150
         Label:
-            text:"Usuario:"
+            text:"E-mail:"
             pos_hint: {"right":0.35,"top":0.6} #posição
             size_hint: 0.1,0.05 #tamanho
         Label:
@@ -15,7 +15,7 @@
             size_hint: 0.1,0.05 #tamanho
         Button:
             text:"Entrar"
-            on_release: app.mudar_tela("homepage")
+            on_release: root.login(email_input,password_input)
             pos_hint: {"right":0.53,"top":0.4} #posição
             size_hint: 0.1,0.05 #tamanho
         Button:
@@ -24,7 +24,7 @@
             pos_hint: {"right":0.53,"top":0.3} #posição
             size_hint: 0.1,0.05 #tamanho
         TextInput:
-            id: user_input
+            id: email_input
             pos_hint: {"right":0.65, "top":0.6}
             size_hint: 0.3, 0.05
             multiline: False
